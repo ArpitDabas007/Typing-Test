@@ -29,8 +29,7 @@ userInput.addEventListener("input", () => {
 
   let userInputChars = userInput.value.split("");
 
-  // Reset mistakes for each input event
-  mistakes = 0;
+  mistakes = 0; // Reset mistakes before checking
 
   quoteChars.forEach((char, index) => {
     if (userInputChars[index] == null) {
@@ -47,10 +46,8 @@ userInput.addEventListener("input", () => {
 
   document.getElementById("mistakes").innerText = mistakes;
 
-  // Finish test when all characters are correct and full length typed
-  const allCorrect = quoteChars.every((char) => char.classList.contains("success"));
-
-  if (allCorrect && userInput.value.length === quote.length) {
+  // ONLY finish test if full input is entered AND there are no mistakes
+  if (userInputChars.length === quote.length && mistakes === 0) {
     displayResult();
   }
 });
@@ -86,13 +83,14 @@ const displayResult = () => {
   const accuracy = Math.round(((userInput.value.length - mistakes) / userInput.value.length) * 100);
 
   document.getElementById("wpm").innerText = `${wpm} wpm`;
-  document.getElementById("accuracy").innerText = `${accuracy} %`;
+  document.getElementById("accuracy").innerText = isNaN(accuracy) ? `0 %` : `${accuracy} %`;
 };
 
 // Start test
 const startTest = () => {
   mistakes = 0;
-  timer = null;
+  time = 60;
+  clearInterval(timer);
   userInput.disabled = false;
   userInput.value = "";
   quoteSection.innerHTML = "";
