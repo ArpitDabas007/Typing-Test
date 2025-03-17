@@ -4,6 +4,8 @@ const quoteApiUrl = "https://api.quotable.io/random?minLength=80&maxLength=100";
 // DOM elements
 const quoteSection = document.getElementById("quote");
 const userInput = document.getElementById("quote-input");
+const startButton = document.getElementById("start-test");
+const stopButton = document.getElementById("stop-test");
 
 // Variables
 let quote = "";
@@ -11,80 +13,65 @@ let time = 60;
 let timer = null;
 let mistakes = 0;
 
-// Fallback quotes if API fails
+// Fallback quotes in case API doesn't work
 const fallbackQuotes = [
   "The best way to predict the future is to invent it.",
-  "Life is about making an impact, not making an income.",
+  "Life is about making an impact, not just making an income.",
   "Strive not to be a success, but rather to be of value."
 ];
 
-// Fetch and display new quote
+// Fetch and render new quote
 const renderNewQuote = async () => {
   try {
     const response = await fetch(quoteApiUrl);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error("API Error");
     const data = await response.json();
     quote = data.content;
   } catch (error) {
-    console.error("Error fetching quote:", error);
-    // Use a fallback quote if API fails
+    console.log("Using fallback quote due to error:", error);
     quote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
   }
 
-  // Reset and display quote
+  // Reset and render
   quoteSection.innerHTML = "";
-  const arr = quote.split("").map((char) => {
+  const characters = quote.split("").map((char) => {
     return `<span class='quote-chars'>${char}</span>`;
   });
-  quoteSection.innerHTML = arr.join("");
+  quoteSection.innerHTML = characters.join("");
 
-  // Clear textarea and enable typing
+  // Enable textarea and clear input
   userInput.value = "";
   userInput.disabled = false;
   userInput.focus();
 };
 
-// Start the test
+// Start test
 const startTest = () => {
-  // Reset everything
   mistakes = 0;
   time = 60;
-  document.getElementById("timer").innerText = `${time}s`;
   document.getElementById("mistakes").innerText = mistakes;
+  document.getElementById("timer").innerText = `${time}s`;
 
+  startButton.style.display = "none";
+  stopButton.style.display = "block";
   document.querySelector(".result").style.display = "none";
-  document.getElementById("start-test").style.display = "none";
-  document.getElementById("stop-test").style.display = "block";
 
-  // Enable textarea
-  userInput.disabled = false;
-  userInput.value = "";
-  userInput.focus();
-
-  // Fetch a new quote
   renderNewQuote();
 
-  // Start timer
   clearInterval(timer);
   timer = setInterval(updateTimer, 1000);
 };
 
-// Stop the test and show results
+// Stop test and show results
 const displayResult = () => {
   clearInterval(timer);
-
-  // Disable textarea
   userInput.disabled = true;
-  document.getElementById("stop-test").style.display = "none";
+  stopButton.style.display = "none";
 
-  const timeTaken = (60 - time) / 60; // minutes
+  const timeTaken = (60 - time) / 60; // in minutes
   const totalWords = userInput.value.trim().split(/\s+/).length;
 
-  const wpm = Math.round((totalWords / timeTaken) || 0);
+  const wpm = Math.round(totalWords / timeTaken || 0);
   const accuracy = Math.round(
     ((quote.length - mistakes) / quote.length) * 100
   );
@@ -93,14 +80,16 @@ const displayResult = () => {
   document.getElementById("accuracy").innerText = `${accuracy} %`;
 
   document.querySelector(".result").style.display = "block";
+  startButton.style.display = "block";
 };
 
-// Update the timer every second
+// Timer countdown
 const updateTimer = () => {
   if (time === 0) {
     displayResult();
   } else {
-    document.getElementById("timer").innerText = `${--time}s`;
+    time--;
+    document.getElementById("timer").innerText = `${time}s`;
   }
 };
 
@@ -135,15 +124,17 @@ userInput.addEventListener("input", () => {
   }
 });
 
-// Initialize on window load
+// Event listeners for buttons
+startButton.addEventListener("click", startTest);
+stopButton.addEventListener("click", displayResult);
+
+// Initial setup on load
 window.onload = () => {
   userInput.value = "";
   userInput.disabled = true;
-  document.getElementById("start-test").style.display = "block";
-  document.getElementById("stop-test").style.display = "none";
+  startButton.style.display = "block";
+  stopButton.style.display = "none";
   document.querySelector(".result").style.display = "none";
-  document.getElementById("timer").innerText = "60s";
-  document.getElementById("mistakes").innerText = "0";
 
-  renderNewQuote();
+  renderNewQuote(); // Optional: load a quote on page load
 };
