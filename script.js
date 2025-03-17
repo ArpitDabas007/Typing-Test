@@ -10,26 +10,32 @@ let mistakes = 0;
 
 // Display random quotes
 const renderNewQuote = async () => {
-  const response = await fetch(quoteApiUrl);
-  const data = await response.json();
-  quote = data.content;
+  try {
+    const response = await fetch(quoteApiUrl);
+    const data = await response.json();
+    quote = data.content;
 
-  // Create spans for each character
-  const arr = quote.split("").map((value) => {
-    return `<span class='quote-chars'>${value}</span>`;
-  });
+    // Clear the quote section before adding new content
+    quoteSection.innerHTML = "";
 
-  quoteSection.innerHTML = arr.join("");
+    // Create spans for each character in the quote
+    const arr = quote.split("").map((value) => {
+      return `<span class='quote-chars'>${value}</span>`;
+    });
+
+    quoteSection.innerHTML = arr.join("");
+  } catch (error) {
+    console.error("Failed to fetch quote:", error);
+    quoteSection.innerHTML = "<span class='fail'>Failed to load quote. Check your connection.</span>";
+  }
 };
 
-// Logic for comparing input words with quote
+// Compare input with quote
 userInput.addEventListener("input", () => {
   let quoteChars = document.querySelectorAll(".quote-chars");
-  quoteChars = Array.from(quoteChars);
-
   let userInputChars = userInput.value.split("");
 
-  mistakes = 0; // Reset mistakes before checking
+  mistakes = 0; // Reset mistakes each time
 
   quoteChars.forEach((char, index) => {
     if (userInputChars[index] == null) {
@@ -46,13 +52,12 @@ userInput.addEventListener("input", () => {
 
   document.getElementById("mistakes").innerText = mistakes;
 
-  // ONLY finish test if full input is entered AND there are no mistakes
   if (userInputChars.length === quote.length && mistakes === 0) {
     displayResult();
   }
 });
 
-// Update Timer on screen
+// Timer logic
 function updateTimer() {
   if (time === 0) {
     displayResult();
@@ -61,7 +66,6 @@ function updateTimer() {
   }
 }
 
-// Start timer countdown
 const timeReduce = () => {
   time = 60;
   timer = setInterval(updateTimer, 1000);
@@ -69,10 +73,11 @@ const timeReduce = () => {
 
 // End test and show results
 const displayResult = () => {
-  document.querySelector(".result").style.display = "block";
   clearInterval(timer);
-  document.getElementById("stop-test").style.display = "none";
   userInput.disabled = true;
+
+  document.querySelector(".result").style.display = "block";
+  document.getElementById("stop-test").style.display = "none";
 
   let timeTaken = 1;
   if (time !== 0) {
@@ -86,28 +91,38 @@ const displayResult = () => {
   document.getElementById("accuracy").innerText = isNaN(accuracy) ? `0 %` : `${accuracy} %`;
 };
 
-// Start test
+// Start a new test
 const startTest = () => {
   mistakes = 0;
   time = 60;
-  clearInterval(timer);
+
+  clearInterval(timer); // Clear any previous timers
+
   userInput.disabled = false;
   userInput.value = "";
-  quoteSection.innerHTML = "";
-  renderNewQuote();
-  timeReduce();
+
   document.getElementById("start-test").style.display = "none";
   document.getElementById("stop-test").style.display = "block";
   document.querySelector(".result").style.display = "none";
+
   document.getElementById("mistakes").innerText = mistakes;
   document.getElementById("timer").innerText = `${time}s`;
+
+  renderNewQuote();
+  timeReduce();
 };
 
-// On page load
+// Make sure startTest and displayResult are globally available
+window.startTest = startTest;
+window.displayResult = displayResult;
+
+// Initial setup on page load
 window.onload = () => {
   userInput.value = "";
+  userInput.disabled = true;
+
   document.getElementById("start-test").style.display = "block";
   document.getElementById("stop-test").style.display = "none";
-  userInput.disabled = true;
+
   renderNewQuote();
 };
