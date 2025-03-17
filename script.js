@@ -6,7 +6,7 @@ const userInput = document.getElementById("quote-input");
 
 let quote = "";
 let time = 60;
-let timer = "";
+let timer = null;
 let mistakes = 0;
 
 // Display random quotes
@@ -31,7 +31,7 @@ userInput.addEventListener("input", () => {
 
   let userInputChars = userInput.value.split("");
 
-  mistakes = 0; // reset mistakes for this round
+  mistakes = 0; // reset mistakes every time user types
 
   quoteChars.forEach((char, index) => {
     if (userInputChars[index] == null) {
@@ -50,35 +50,37 @@ userInput.addEventListener("input", () => {
   // Update mistakes display
   document.getElementById("mistakes").innerText = mistakes;
 
-  // Check if test is completed
-  let check = quoteChars.every((element) => element.classList.contains("success"));
+  // Check if all characters are typed correctly
+  let isComplete = quoteChars.every((element) => element.classList.contains("success"));
 
-  if (check) {
+  if (isComplete) {
     displayResult();
   }
 });
 
-// Update Timer on screen
+// Update timer on screen
 function updateTimer() {
   if (time === 0) {
     displayResult();
   } else {
-    document.getElementById("timer").innerText = --time + "s";
+    time--;
+    document.getElementById("timer").innerText = `${time}s`;
   }
 }
 
-// Sets timer
+// Start the timer
 const timeReduce = () => {
-  time = 60;
   timer = setInterval(updateTimer, 1000);
 };
 
-// End Test and display results
+// Display result and stop test
 const displayResult = () => {
-  document.querySelector(".result").style.display = "block";
   clearInterval(timer);
 
+  document.querySelector(".result").style.display = "block";
   document.getElementById("stop-test").style.display = "none";
+  document.getElementById("start-test").style.display = "inline-block";
+
   userInput.disabled = true;
 
   let timeTaken = (60 - time) / 100;
@@ -93,7 +95,7 @@ const displayResult = () => {
   document.getElementById("accuracy").innerText = `${accuracy} %`;
 };
 
-// Start Test
+// Start the test
 const startTest = () => {
   mistakes = 0;
   time = 60;
@@ -101,21 +103,32 @@ const startTest = () => {
   userInput.disabled = false;
 
   document.getElementById("mistakes").innerText = mistakes;
+  document.getElementById("timer").innerText = `${time}s`;
+
   document.querySelector(".result").style.display = "none";
-
-  clearInterval(timer);
-  timeReduce();
-  renderNewQuote();
-
   document.getElementById("start-test").style.display = "none";
   document.getElementById("stop-test").style.display = "inline-block";
+
+  clearInterval(timer);
+  renderNewQuote();
+  timeReduce(); // Start the timer after displaying quote
 };
 
-// Initialize on page load
+// Initialize the app on page load
 window.onload = () => {
   userInput.value = "";
+  userInput.disabled = true;
+
   document.getElementById("start-test").style.display = "inline-block";
   document.getElementById("stop-test").style.display = "none";
-  userInput.disabled = true;
+
+  document.querySelector(".result").style.display = "none";
+  document.getElementById("mistakes").innerText = "0";
+  document.getElementById("timer").innerText = "60s";
+
   renderNewQuote();
 };
+
+// Optional: Add event listeners instead of inline onclick (recommended)
+// document.getElementById("start-test").addEventListener("click", startTest);
+// document.getElementById("stop-test").addEventListener("click", displayResult);
