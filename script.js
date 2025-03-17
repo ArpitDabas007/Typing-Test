@@ -1,6 +1,4 @@
 const quoteApiUrl = "https://api.quotable.io/random?minLength=80&maxLength=100";
-
-// Get elements from DOM
 const quoteSection = document.getElementById("quote");
 const userInput = document.getElementById("quote-input");
 const startButton = document.getElementById("start-test");
@@ -8,134 +6,115 @@ const stopButton = document.getElementById("stop-test");
 
 let quote = "";
 let time = 60;
-let timer = null;
+let timer = "";
 let mistakes = 0;
 
-// Fetch and render new quote
-async function renderNewQuote() {
+// Display random quotes
+const renderNewQuote = async () => {
   const response = await fetch(quoteApiUrl);
-  const data = await response.json();
+  let data = await response.json();
   quote = data.content;
 
-  // Reset quote display
-  quoteSection.innerHTML = "";
-
-  // Add characters with spans
-  quote.split("").forEach((char) => {
-    const charSpan = document.createElement("span");
-    charSpan.classList.add("quote-chars");
-    charSpan.innerText = char;
-    quoteSection.appendChild(charSpan);
+  let arr = quote.split("").map((value) => {
+    return "<span class='quote-chars'>" + value + "</span>";
   });
-}
 
-// Compare user input with quote
+  quoteSection.innerHTML = arr.join("");
+};
+
+// Compare input words with quote
 userInput.addEventListener("input", () => {
-  const quoteChars = document.querySelectorAll(".quote-chars");
-  const userInputChars = userInput.value.split("");
+  let quoteChars = document.querySelectorAll(".quote-chars");
+  quoteChars = Array.from(quoteChars);
 
-  let correct = true;
+  let userInputChars = userInput.value.split("");
 
   quoteChars.forEach((char, index) => {
-    const typedChar = userInputChars[index];
-
-    if (typedChar == null) {
-      char.classList.remove("success", "fail");
-      correct = false;
-    } else if (char.innerText === typedChar) {
+    if (char.innerText === userInputChars[index]) {
       char.classList.add("success");
       char.classList.remove("fail");
-    } else {
-      char.classList.add("fail");
+    } else if (userInputChars[index] == null) {
       char.classList.remove("success");
-      correct = false;
-      mistakes++;
+      char.classList.remove("fail");
+    } else {
+      if (!char.classList.contains("fail")) {
+        mistakes += 1;
+        document.getElementById("mistakes").innerText = mistakes;
+        char.classList.add("fail");
+      }
     }
   });
 
-  // Update mistakes count on screen
-  document.getElementById("mistakes").innerText = mistakes;
+  let check = quoteChars.every((element) => {
+    return element.classList.contains("success");
+  });
 
-  // If entire quote is correct
-  if (correct) {
+  if (check) {
     displayResult();
   }
 });
 
-// Start the test
-function startTest() {
-  mistakes = 0;
+// Update Timer
+function updateTimer() {
+  if (time === 0) {
+    displayResult();
+  } else {
+    document.getElementById("timer").innerText = --time + "s";
+  }
+}
+
+// Start Timer
+const timeReduce = () => {
   time = 60;
-  userInput.disabled = false;
-  userInput.value = "";
-  document.getElementById("mistakes").innerText = mistakes;
+  timer = setInterval(updateTimer, 1000);
+};
 
-  // Show/hide buttons
-  startButton.style.display = "none";
-  stopButton.style.display = "inline-block";
-
-  // Start timer
-  clearInterval(timer);
-  timeReduce();
-
-  // Reset and get new quote
-  renderNewQuote();
-}
-
-// Reduce time function
-function timeReduce() {
-  document.getElementById("timer").innerText = `${time}s`;
-
-  timer = setInterval(() => {
-    if (time > 0) {
-      time--;
-      document.getElementById("timer").innerText = `${time}s`;
-    } else {
-      clearInterval(timer);
-      displayResult();
-    }
-  }, 1000);
-}
-
-// Display result
-function displayResult() {
-  clearInterval(timer);
-
-  // Show result box
+// End Test and display result
+const displayResult = () => {
   document.querySelector(".result").style.display = "block";
-
-  // Hide stop button
+  clearInterval(timer);
   stopButton.style.display = "none";
-
-  // Disable input
   userInput.disabled = true;
 
-  // Calculate WPM
-  const timeTaken = 60 - time;
-  const wpm = timeTaken > 0 ? (userInput.value.length / 5 / (timeTaken / 60)).toFixed(2) : 0;
+  let timeTaken = 1;
+  if (time !== 0) {
+    timeTaken = (60 - time) / 60; // convert to minutes
+  }
 
-  // Calculate Accuracy
-  const accuracy =
-    userInput.value.length > 0
-      ? Math.round(((userInput.value.length - mistakes) / userInput.value.length) * 100)
-      : 0;
+  const wpm = (userInput.value.length / 5 / timeTaken).toFixed(2);
+  const accuracy = Math.round(
+    ((userInput.value.length - mistakes) / userInput.value.length) * 100
+  );
 
-  document.getElementById("wpm").innerText = `${wpm} wpm`;
-  document.getElementById("accuracy").innerText = `${accuracy} %`;
-}
+  document.getElementById("wpm").innerText = wpm + " wpm";
+  document.getElementById("accuracy").innerText = accuracy + " %";
+};
 
-// Event listeners for buttons
+// Start Test function
+const startTest = () => {
+  mistakes = 0;
+  timer = "";
+  userInput.disabled = false;
+  timeReduce();
+  startButton.style.display = "none";
+  stopButton.style.display = "block";
+  userInput.value = "";
+  document.getElementById("mistakes").innerText = mistakes;
+  renderNewQuote();
+};
+
+// Setup event listeners
 startButton.addEventListener("click", startTest);
 stopButton.addEventListener("click", displayResult);
 
-// Initial setup
+// On page load
 window.onload = () => {
   userInput.value = "";
-  userInput.disabled = true;
-  startButton.style.display = "inline-block";
+  startButton.style.display = "block";
   stopButton.style.display = "none";
+  userInput.disabled = true;
   document.querySelector(".result").style.display = "none";
-
-  // Load first quote but don't allow typing yet
+  document.getElementById("timer").innerText = "60s";
+  document.getElementById("mistakes").innerText = "0";
   renderNewQuote();
 };
