@@ -41,25 +41,35 @@ const renderNewQuote = async () => {
     return `<span class='quote-chars'>${char}</span>`;
   });
   quoteSection.innerHTML = arr.join("");
+
+  // Clear textarea and enable typing
+  userInput.value = "";
+  userInput.disabled = false;
+  userInput.focus();
 };
 
 // Start the test
 const startTest = () => {
+  // Reset everything
   mistakes = 0;
   time = 60;
+  document.getElementById("timer").innerText = `${time}s`;
+  document.getElementById("mistakes").innerText = mistakes;
 
-  userInput.value = "";
-  userInput.disabled = false;
-  userInput.focus();
-
+  document.querySelector(".result").style.display = "none";
   document.getElementById("start-test").style.display = "none";
   document.getElementById("stop-test").style.display = "block";
 
-  document.getElementById("mistakes").innerText = mistakes;
-  document.querySelector(".result").style.display = "none";
+  // Enable textarea
+  userInput.disabled = false;
+  userInput.value = "";
+  userInput.focus();
 
+  // Fetch a new quote
   renderNewQuote();
-  clearInterval(timer); // clear any old timer
+
+  // Start timer
+  clearInterval(timer);
   timer = setInterval(updateTimer, 1000);
 };
 
@@ -67,10 +77,11 @@ const startTest = () => {
 const displayResult = () => {
   clearInterval(timer);
 
+  // Disable textarea
   userInput.disabled = true;
   document.getElementById("stop-test").style.display = "none";
 
-  const timeTaken = (60 - time) / 60; // in minutes
+  const timeTaken = (60 - time) / 60; // minutes
   const totalWords = userInput.value.trim().split(/\s+/).length;
 
   const wpm = Math.round((totalWords / timeTaken) || 0);
