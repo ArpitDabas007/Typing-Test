@@ -1,4 +1,9 @@
 const quoteApiUrl = "https://api.quotable.io/random?minLength=80&maxLength=100";
+const fallbackQuotes = [
+  "The quick brown fox jumps over the lazy dog.",
+  "Typing fast requires practice, patience, and precision.",
+  "Practice makes perfect when improving your typing speed."
+];
 
 const quoteSection = document.getElementById("quote");
 const userInput = document.getElementById("quote-input");
@@ -9,12 +14,6 @@ let quote = "";
 let time = 60;
 let timer = null;
 let mistakes = 0;
-
-const fallbackQuotes = [
-  "The quick brown fox jumps over the lazy dog.",
-  "Typing fast requires practice, patience, and precision.",
-  "Practice makes perfect when improving your typing speed."
-];
 
 // Get and display a new quote
 async function renderNewQuote() {
@@ -27,6 +26,7 @@ async function renderNewQuote() {
     quote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
   }
 
+  // Clear existing quote and render new one
   quoteSection.innerHTML = "";
   quote.split("").forEach(char => {
     const span = document.createElement("span");
@@ -35,6 +35,7 @@ async function renderNewQuote() {
     quoteSection.appendChild(span);
   });
 
+  // Reset input box
   userInput.value = "";
   userInput.disabled = false;
   userInput.focus();
@@ -62,7 +63,7 @@ function startTest() {
   timer = setInterval(updateTimer, 1000);
 }
 
-// Timer countdown
+// Update timer countdown
 function updateTimer() {
   if (time === 0) {
     displayResult();
@@ -121,15 +122,15 @@ userInput.addEventListener("input", () => {
   }
 });
 
-// Add event listeners to buttons
+// Event listeners for start and stop buttons
 startButton.addEventListener("click", startTest);
 stopButton.addEventListener("click", displayResult);
 
 // On page load setup
-window.onload = () => {
+window.addEventListener("load", () => {
   userInput.value = "";
   userInput.disabled = true;
   startButton.style.display = "block";
   stopButton.style.display = "none";
   document.querySelector(".result").style.display = "none";
-};
+});
