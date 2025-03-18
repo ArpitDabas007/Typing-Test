@@ -16,32 +16,40 @@ const quoteApiUrl = "https://api.adviceslip.com/advice";
     let mistakes = 0;
 
     // Get and display a new quote
-    async function renderNewQuote() {
-      quoteSection.innerHTML = "Loading quote...";
-      try {
-        const response = await fetch(quoteApiUrl);
+   async function renderNewQuote() {
+  quoteSection.innerHTML = "Loading quote...";
+  try {
+    const response = await fetch(quoteApiUrl, { cache: "no-cache" }); // no-cache to avoid repeated quotes
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    const data = await response.json();
+    quote = data.slip.advice;
 
-        const data = await response.json();
-        quote = data.content;
-        console.log("Fetched quote from API:", quote);
+    console.log("Fetched quote from API:", quote);
 
-      } catch (error) {
-        console.error("API failed, using fallback.", error);
-        quote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
-      }
+  } catch (error) {
+    console.error("API failed, using fallback.", error);
+    quote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+  }
 
-      // Clear existing quote and render new one
-      quoteSection.innerHTML = "";
-      quote.split("").forEach(char => {
-        const span = document.createElement("span");
-        span.classList.add("quote-chars");
-        span.innerText = char;
-        quoteSection.appendChild(span);
-      });
+  // Clear existing quote and render new one
+  quoteSection.innerHTML = "";
+  quote.split("").forEach(char => {
+    const span = document.createElement("span");
+    span.classList.add("quote-chars");
+    span.innerText = char;
+    quoteSection.appendChild(span);
+  });
+
+  // Reset input box
+  userInput.value = "";
+  userInput.disabled = false;
+  userInput.focus();
+}
+
 
       // Reset input box
       userInput.value = "";
