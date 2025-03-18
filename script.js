@@ -1,4 +1,4 @@
-const quoteApiUrl = "https://api.quotable.io/random?minLength=80&maxLength=100";
+const quoteApiUrl = "https://api.adviceslip.com/advice";
     const fallbackQuotes = [
       "The quick brown fox jumps over the lazy dog.",
       "Typing fast requires practice, patience, and precision.",
