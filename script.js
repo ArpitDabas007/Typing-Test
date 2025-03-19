@@ -51,11 +51,6 @@ const quoteApiUrl = "https://api.adviceslip.com/advice";
 }
 
 
-      // Reset input box
-      userInput.value = "";
-      userInput.disabled = false;
-      userInput.focus();
-    }
 
     // Start the typing test
     function startTest() {
